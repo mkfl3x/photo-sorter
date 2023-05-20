@@ -1,4 +1,4 @@
-package org.mkfl3x.photosorter.logic
+package org.mkfl3x.photosorter.app
 
 import org.mkfl3x.photosorter.ui.MainFrame
 
