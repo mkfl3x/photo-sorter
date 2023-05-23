@@ -11,4 +11,4 @@ enum class FolderType {
     DESTINATION
 }
 
-class BadFolderException(message: String?) : Exception(message)
+class DirectoryException(message: String?) : Exception(message)
