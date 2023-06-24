@@ -1,9 +1,7 @@
 package org.mkfl3x.photosorter.app
 
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file.*
 import javax.swing.JOptionPane
 import javax.swing.JTextArea
 import kotlin.io.path.isDirectory
@@ -30,7 +28,10 @@ class PhotoSorter {
                 .forEach { Files.createDirectory(it) }
 
         // sort files
-        Files.walk(Paths.get(source)).filter { it.isDirectory().not() && it.isHidden().not() }.map { File(it, mode) }
+        Files.walk(Paths.get(source))
+            .filter { it.isDirectory().not() && it.isHidden().not() }
+            .map { File(it, mode) }
+            .toList().toSet() // TODO: make it configurable
             .forEach { file ->
                 file.getDestinationFilepath(source, destination).apply {
                     when (mode) {

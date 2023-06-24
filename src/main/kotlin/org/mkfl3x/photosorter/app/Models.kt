@@ -21,6 +21,15 @@ class DirectoryException(message: String?) : Exception(message)
 
 class File(val filepath: Path, private val mode: SortMode) {
 
+    private val size =
+        Files.readAttributes(filepath, BasicFileAttributes::class.java).size()
+
+    private val extension =
+        Files.probeContentType(filepath)?.substringAfterLast("/")
+
+    private val lastModifiedTime =
+        Files.readAttributes(filepath, BasicFileAttributes::class.java).lastModifiedTime()
+
     private val filenamePattern =
         if (System.getProperty("os.name").startsWith("Mac")) "yyyy-MMM-dd_HH-mm-ss" else "yyyy-MMM-dd_HH:mm:ss"
 
@@ -31,11 +40,23 @@ class File(val filepath: Path, private val mode: SortMode) {
     )
 
     private fun formatFilename() =
-        SimpleDateFormat(filenamePattern).format(getLastModifiedTime().toMillis()) + ".${getExtension() ?: "?"}"
+        SimpleDateFormat(filenamePattern).format(lastModifiedTime.toMillis()) + ".${extension ?: "?"}"
 
-    private fun getLastModifiedTime() =
-        Files.readAttributes(filepath, BasicFileAttributes::class.java).lastModifiedTime()
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-    private fun getExtension() =
-        Files.probeContentType(filepath)?.substringAfterLast("/")
+        other as File
+
+        if (size != other.size) return false
+        if (extension != other.extension) return false
+        return lastModifiedTime == other.lastModifiedTime
+    }
+
+    override fun hashCode(): Int {
+        var result = size.hashCode()
+        result = 31 * result + (extension?.hashCode() ?: 0)
+        result = 31 * result + (lastModifiedTime?.hashCode() ?: 0)
+        return result
+    }
 }
