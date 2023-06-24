@@ -53,7 +53,7 @@ public class MainFrame extends JFrame {
                 {
                     log.setText("");
                     try {
-                        photoSorter.sortFiles(getSelectedMode(), sourceFolderField.getText(), destinationFolderField.getText());
+                        photoSorter.sortFiles(getSelectedMode(), sourceFolderField.getText(), destinationFolderField.getText(), log);
                     } catch (DirectoryException exception) {
                         JOptionPane.showMessageDialog(null, exception.getMessage(), "Directory error", JOptionPane.ERROR_MESSAGE);
                     } catch (Exception exception) {

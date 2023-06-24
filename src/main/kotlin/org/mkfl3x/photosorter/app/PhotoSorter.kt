@@ -7,13 +7,17 @@ import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
 import java.text.SimpleDateFormat
 import javax.swing.JOptionPane
+import javax.swing.JTextArea
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isHidden
 
 class PhotoSorter {
 
     @Throws(DirectoryException::class)
-    fun sortFiles(mode: SortMode, source: String, destination: String) {
+    fun sortFiles(mode: SortMode, source: String, destination: String, log: JTextArea) {
+        // logging method
+        fun writeLog(message: String) = log.append("$message\n")
+        writeLog("Sorting started")
 
         // check folders
         checkFolder(source, FolderType.SOURCE)
@@ -36,10 +40,10 @@ class PhotoSorter {
                         SortMode.MOVE,
                         SortMode.REPLACE -> Files.move(file.filepath, this)
                     }
+                    writeLog("'${file.filepath}' -> '$this'")
                 }
             }
-        if (mode == SortMode.MOVE)
-            deleteFolder(Paths.get(source))
+        writeLog("Sorting finished")
     }
 
     fun getModeByText(text: String) = SortMode.values().first { it.text == text }
