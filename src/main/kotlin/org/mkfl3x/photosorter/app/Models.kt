@@ -52,6 +52,7 @@ class File(val filepath: Path, private val mode: SortMode) {
 
         if (size != other.size) return false
         if (extension != other.extension) return false
+        if (filepath.parent != other.filepath.parent) return false
         return lastModifiedTime == other.lastModifiedTime
     }
 
@@ -59,6 +60,7 @@ class File(val filepath: Path, private val mode: SortMode) {
         var result = size.hashCode()
         result = 31 * result + (extension?.hashCode() ?: 0)
         result = 31 * result + (lastModifiedTime?.hashCode() ?: 0)
+        result = 31 * result + (filepath.parent?.hashCode() ?: 0)
         return result
     }
 }
