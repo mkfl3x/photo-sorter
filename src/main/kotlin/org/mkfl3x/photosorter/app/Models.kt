@@ -19,6 +19,8 @@ enum class FolderType {
 
 class DirectoryException(message: String?) : Exception(message)
 
+class DummyException : Exception()
+
 class File(val filepath: Path, private val mode: SortMode) {
 
     private val size =

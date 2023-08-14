@@ -72,17 +72,21 @@
         </constraints>
         <properties/>
       </component>
-      <component id="9ab3d" class="javax.swing.JTextArea" binding="log" default-binding="true">
+      <scrollpane id="a9847">
         <constraints>
-          <grid row="6" column="0" row-span="1" col-span="5" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <minimum-size width="450" height="250"/>
-            <preferred-size width="450" height="250"/>
-          </grid>
+          <grid row="6" column="0" row-span="1" col-span="5" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <editable value="false"/>
-        </properties>
-      </component>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="9ab3d" class="javax.swing.JTextArea" binding="log" default-binding="true">
+            <constraints/>
+            <properties>
+              <editable value="false"/>
+            </properties>
+          </component>
+        </children>
+      </scrollpane>
     </children>
   </grid>
 </form>
