@@ -11,10 +11,6 @@ import java.util.Arrays;
 
 public class MainFrame extends JFrame {
 
-    // TODO:
-    //  - add info popup for mode combobox
-    //  - use file chooser for source and destination fields
-
     private final PhotoSorter photoSorter = new PhotoSorter();
 
     private JTextField sourceFolderField;
@@ -31,8 +27,6 @@ public class MainFrame extends JFrame {
 
     private final DefaultCaret logCaret = (DefaultCaret) log.getCaret();
 
-    private JCheckBox sortByYearsCheckbox; // TODO: use it
-
     public MainFrame() {
         configureModes();
         configureSortButton();
@@ -40,14 +34,12 @@ public class MainFrame extends JFrame {
     }
 
     private void configureMainFrame() {
-        setTitle("Photo-Sorter"); // TODO: move to properties
+        setTitle("Photo-Sorter");
         setContentPane(contentPanel);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(500, 500); // TODO: move to properties
+        setSize(500, 500);
         setLocationRelativeTo(null);
         setVisible(true);
-
-        sortByYearsCheckbox.setEnabled(false); // TODO: remove when implemented
         logCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     }
 

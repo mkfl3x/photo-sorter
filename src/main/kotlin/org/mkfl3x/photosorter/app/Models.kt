@@ -37,13 +37,13 @@ class File(private val filepath: Path, private val mode: SortMode) {
     fun sort(source: String, destination: String, mode: SortMode, copyIndex: Int = 0): String {
         try {
             getDestinationFilepath(source, destination).apply {
-                val destination = if (copyIndex > 0) addCopyIndex(this, copyIndex) else this
+                val targetDestination = if (copyIndex > 0) addCopyIndex(this, copyIndex) else this
                 when (mode) {
-                    SortMode.COPY -> Files.copy(filepath, destination)
+                    SortMode.COPY -> Files.copy(filepath, targetDestination)
                     SortMode.MOVE,
-                    SortMode.REPLACE -> Files.move(filepath, destination)
+                    SortMode.REPLACE -> Files.move(filepath, targetDestination)
                 }
-                return "'$filepath' -> '$destination'"
+                return "'$filepath' -> '$targetDestination'"
             }
         } catch (e: FileAlreadyExistsException) {
             return sort(source, destination, mode, copyIndex + 1)
@@ -78,7 +78,7 @@ class File(private val filepath: Path, private val mode: SortMode) {
 
     override fun hashCode(): Int {
         var result = size.hashCode()
-        result = 31 * result + (extension?.hashCode() ?: 0)
+        result = 31 * result + (extension.hashCode())
         result = 31 * result + (lastModifiedTime?.hashCode() ?: 0)
         result = 31 * result + (filepath.parent?.hashCode() ?: 0)
         return result

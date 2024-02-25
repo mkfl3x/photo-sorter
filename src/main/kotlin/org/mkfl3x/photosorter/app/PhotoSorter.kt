@@ -32,9 +32,7 @@ class PhotoSorter {
 
             var counter = 0
             Files.walk(Paths.get(source))
-                .filter {
-                    it.isDirectory().not() && it.isHidden().not() && it.extension.lowercase() in supportedFileTypes
-                }
+                .filter { it.isDirectory().not() && it.isHidden().not() && it.extension.lowercase() in supportedFileTypes }
                 .map { File(it, mode) }.toList()
                 .forEach {
                     writeLog(it.sort(source, destination, mode))
