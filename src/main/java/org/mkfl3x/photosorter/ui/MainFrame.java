@@ -6,6 +6,7 @@ import org.mkfl3x.photosorter.app.PhotoSorter;
 import org.mkfl3x.photosorter.app.SortMode;
 
 import javax.swing.*;
+import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.util.Arrays;
 
@@ -29,6 +30,10 @@ public class MainFrame extends JFrame {
 
     private JTextArea log;
 
+    private final DefaultCaret logCaret = (DefaultCaret) log.getCaret();
+
+    private JCheckBox sortByYearsCheckbox; // TODO: use it
+
     public MainFrame() {
         configureModes();
         configureSortButton();
@@ -42,6 +47,9 @@ public class MainFrame extends JFrame {
         setSize(500, 500); // TODO: move to properties
         setLocationRelativeTo(null);
         setVisible(true);
+
+        sortByYearsCheckbox.setEnabled(false); // TODO: remove when implemented
+        logCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     }
 
     private void configureModes() {

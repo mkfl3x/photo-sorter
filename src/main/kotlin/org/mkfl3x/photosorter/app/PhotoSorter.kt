@@ -6,41 +6,43 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import javax.swing.JOptionPane
 import javax.swing.JTextArea
+import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isHidden
 
 class PhotoSorter {
 
+    private val supportedFileTypes = listOf("png", "jpg", "jpeg")
+
+
     @Throws(DirectoryException::class, DummyException::class)
     fun sortFiles(mode: SortMode, source: String, destination: String, log: JTextArea) {
         fun writeLog(message: String) = log.append("$message\n")
-        writeLog("Sorting started")
+        Thread {
+            writeLog("Sorting started")
 
-        checkFolder(source, FolderType.SOURCE)
-        if (mode != SortMode.REPLACE)
-            checkFolder(destination, FolderType.DESTINATION)
+            checkFolder(source, FolderType.SOURCE)
+            if (mode != SortMode.REPLACE)
+                checkFolder(destination, FolderType.DESTINATION)
 
-        if (mode != SortMode.REPLACE)
+            if (mode != SortMode.REPLACE)
+                Files.walk(Paths.get(source))
+                    .filter { it.isDirectory() }
+                    .map { Paths.get(it.toString().replace(source, destination)) }
+                    .forEach { Files.createDirectory(it) }
+
+            var counter = 0
             Files.walk(Paths.get(source))
-                .filter { it.isDirectory() }
-                .map { Paths.get(it.toString().replace(source, destination)) }
-                .forEach { Files.createDirectory(it) }
-
-        Files.walk(Paths.get(source))
-            .filter { it.isDirectory().not() && it.isHidden().not() }
-            .map { File(it, mode) }
-            .toList().toSet()
-            .forEach { file ->
-                file.getDestinationFilepath(source, destination).apply {
-                    when (mode) {
-                        SortMode.COPY -> Files.copy(file.filepath, this)
-                        SortMode.MOVE,
-                        SortMode.REPLACE -> Files.move(file.filepath, this)
-                    }
-                    writeLog("'${file.filepath}' -> '$this'")
+                .filter {
+                    it.isDirectory().not() && it.isHidden().not() && it.extension.lowercase() in supportedFileTypes
                 }
-            }
-        writeLog("Sorting finished")
+                .map { File(it, mode) }.toList()
+                .forEach {
+                    writeLog(it.sort(source, destination, mode))
+                    counter++
+                }
+            writeLog("Sorting finished. $counter files sorted")
+        }.start()
     }
 
     fun getModeByText(text: String) = SortMode.values().first { it.text == text }
@@ -54,12 +56,13 @@ class PhotoSorter {
                     if (Files.isDirectory(this).not())
                         throw DirectoryException("Source folder should be a directory, not a file")
                 }
+
                 FolderType.DESTINATION -> {
                     if (Files.exists(this))
                         if (overrideDestinationDialog() == 0)
                             deleteFolder(this)
                         else
-                            throw DummyException()
+                            throw DummyException() // TODO: what is it?
                 }
             }
         }
