@@ -14,8 +14,7 @@ class PhotoSorter {
 
     private val supportedFileTypes = listOf("png", "jpg", "jpeg")
 
-
-    @Throws(DirectoryException::class, DummyException::class)
+    @Throws(DirectoryException::class)
     fun sortFiles(mode: SortMode, source: String, destination: String, log: JTextArea) {
         fun writeLog(message: String) = log.append("$message\n")
         Thread {
@@ -56,13 +55,9 @@ class PhotoSorter {
                     if (Files.isDirectory(this).not())
                         throw DirectoryException("Source folder should be a directory, not a file")
                 }
-
                 FolderType.DESTINATION -> {
-                    if (Files.exists(this))
-                        if (overrideDestinationDialog() == 0)
-                            deleteFolder(this)
-                        else
-                            throw DummyException() // TODO: what is it?
+                    if (Files.exists(this) && overrideDestinationDialog() == 0)
+                        deleteFolder(this)
                 }
             }
         }

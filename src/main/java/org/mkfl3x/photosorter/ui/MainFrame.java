@@ -1,7 +1,6 @@
 package org.mkfl3x.photosorter.ui;
 
 import org.mkfl3x.photosorter.app.DirectoryException;
-import org.mkfl3x.photosorter.app.DummyException;
 import org.mkfl3x.photosorter.app.PhotoSorter;
 import org.mkfl3x.photosorter.app.SortMode;
 
@@ -60,11 +59,9 @@ public class MainFrame extends JFrame {
     private void configureSortButton() {
         sort.addActionListener(e ->
                 {
-                    log.setText("");
+                    log.setText(""); // clear log before new sorting
                     try {
                         photoSorter.sortFiles(getSelectedMode(), sourceFolderField.getText(), destinationFolderField.getText(), log);
-                    } catch (DummyException exception) {
-                        // ignore
                     } catch (DirectoryException exception) {
                         String message = exception.getClass().getSimpleName() + "\n" + exception.getMessage();
                         JOptionPane.showMessageDialog(null, message, "Directory error", JOptionPane.ERROR_MESSAGE);
