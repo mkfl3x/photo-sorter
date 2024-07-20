@@ -12,35 +12,45 @@ import kotlin.io.path.isHidden
 
 class PhotoSorter {
 
-    private val supportedFileTypes = listOf("png", "jpg", "jpeg")
+    private val supportedFTypes = listOf("png", "jpg", "jpeg")
 
     @Throws(DirectoryException::class)
     fun sortFiles(mode: SortMode, source: String, destination: String, log: JTextArea) {
         fun writeLog(message: String) = log.append("$message\n")
+        checkFolder(source, FolderType.SOURCE)
+        if (mode != SortMode.REPLACE)
+            checkFolder(destination, FolderType.DESTINATION)
         Thread {
-            writeLog("Sorting started")
-
-            checkFolder(source, FolderType.SOURCE)
-            if (mode != SortMode.REPLACE)
-                checkFolder(destination, FolderType.DESTINATION)
-
+            // create directories structure
             if (mode != SortMode.REPLACE)
                 Files.walk(Paths.get(source))
                     .filter { it.isDirectory() }
                     .map { Paths.get(it.toString().replace(source, destination)) }
                     .forEach { Files.createDirectory(it) }
-
-            var counter = 0
-            Files.walk(Paths.get(source))
-                .filter {
-                    it.isDirectory().not() && it.isHidden().not() && it.extension.lowercase() in supportedFileTypes
+            // collect all files
+            writeLog("Collecting files...")
+            val allFiles = Files.walk(Paths.get(source))
+                .filter { it.isDirectory().not() && it.isHidden().not() && it.extension.lowercase() in supportedFTypes }
+                .map { File(it, mode) }
+                .toList()
+            writeLog("Files found: ${allFiles.size}")
+            // exclude duplicates
+            writeLog("Duplicates detection...")
+            val targetFiles = allFiles.toSet().apply {
+                if (this.isNotEmpty()) {
+                    writeLog("Following duplicates detected and ${if (mode == SortMode.REPLACE) "deleted" else "excluded from sorting"}:")
+                    allFiles.map { it.getFilePath() }.subtract(this.map { it.getFilePath() }).forEach {
+                        if (mode == SortMode.REPLACE)
+                            Files.delete(Paths.get(it))
+                        writeLog(it)
+                    }
                 }
-                .map { File(it, mode) }.toList()
-                .forEach {
-                    writeLog(it.sort(source, destination, mode))
-                    counter++
-                }
-            writeLog("Sorting finished. $counter files sorted")
+                writeLog("")
+            }
+            // sorting
+            writeLog("Sorting started")
+            targetFiles.forEach { writeLog(it.sort(source, destination, mode)) }
+            writeLog("Sorting finished. ${targetFiles.size} files handled")
         }.start()
     }
 
@@ -55,6 +65,7 @@ class PhotoSorter {
                     if (Files.isDirectory(this).not())
                         throw DirectoryException("Source folder should be a directory, not a file")
                 }
+
                 FolderType.DESTINATION -> {
                     if (path.isEmpty() || path.isBlank())
                         throw DirectoryException("Please specify destination directory")

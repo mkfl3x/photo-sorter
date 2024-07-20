@@ -5,7 +5,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
+import java.security.MessageDigest
 import java.text.SimpleDateFormat
+import kotlin.io.path.pathString
 
 enum class SortMode(val text: String) {
     COPY("Copy"),
@@ -22,6 +24,9 @@ class DirectoryException(message: String?) : Exception(message)
 
 class File(private val filepath: Path, private val mode: SortMode) {
 
+    private val folder =
+        filepath.parent.pathString
+
     private val size =
         Files.readAttributes(filepath, BasicFileAttributes::class.java).size()
 
@@ -33,6 +38,11 @@ class File(private val filepath: Path, private val mode: SortMode) {
 
     private val filenamePattern =
         if (System.getProperty("os.name").startsWith("Mac")) "yyyy-MMM-dd_HH-mm-ss" else "yyyy-MMM-dd_HH:mm:ss"
+
+    private val md5Hash = MessageDigest.getInstance("MD5").digest(Files.readAllBytes(filepath))
+        .joinToString("") { String.format("%02x", it) }
+
+    fun getFilePath() = filepath.pathString
 
     fun sort(source: String, destination: String, mode: SortMode, copyIndex: Int = 0): String {
         try {
@@ -70,17 +80,19 @@ class File(private val filepath: Path, private val mode: SortMode) {
 
         other as File
 
+        if (folder != other.folder) return false
         if (size != other.size) return false
         if (extension != other.extension) return false
-        if (filepath.parent != other.filepath.parent) return false
-        return lastModifiedTime == other.lastModifiedTime
+        if (md5Hash != other.md5Hash) return false
+
+        return true
     }
 
     override fun hashCode(): Int {
-        var result = size.hashCode()
-        result = 31 * result + (extension.hashCode())
-        result = 31 * result + (lastModifiedTime?.hashCode() ?: 0)
-        result = 31 * result + (filepath.parent?.hashCode() ?: 0)
+        var result = folder.hashCode()
+        result = 31 * result + size.hashCode()
+        result = 31 * result + extension.hashCode()
+        result = 31 * result + md5Hash.hashCode()
         return result
     }
 }
