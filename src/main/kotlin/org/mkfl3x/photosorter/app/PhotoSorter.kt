@@ -32,7 +32,9 @@ class PhotoSorter {
 
             var counter = 0
             Files.walk(Paths.get(source))
-                .filter { it.isDirectory().not() && it.isHidden().not() && it.extension.lowercase() in supportedFileTypes }
+                .filter {
+                    it.isDirectory().not() && it.isHidden().not() && it.extension.lowercase() in supportedFileTypes
+                }
                 .map { File(it, mode) }.toList()
                 .forEach {
                     writeLog(it.sort(source, destination, mode))
@@ -54,6 +56,8 @@ class PhotoSorter {
                         throw DirectoryException("Source folder should be a directory, not a file")
                 }
                 FolderType.DESTINATION -> {
+                    if (path.isEmpty() || path.isBlank())
+                        throw DirectoryException("Please specify destination directory")
                     if (Files.exists(this) && overrideDestinationDialog() == 0)
                         deleteFolder(this)
                 }
