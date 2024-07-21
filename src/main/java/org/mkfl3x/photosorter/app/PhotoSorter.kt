@@ -28,7 +28,7 @@ class PhotoSorter {
                     .map { Paths.get(it.toString().replace(source, destination)) }
                     .forEach { Files.createDirectory(it) }
             // collect all files
-            writeLog("Collecting files...")
+            writeLog("Collecting files... Supported formats: ${supportedFTypes.joinToString { it }}")
             val allFiles = Files.walk(Paths.get(source))
                 .filter { it.isDirectory().not() && it.isHidden().not() && it.extension.lowercase() in supportedFTypes }
                 .map { File(it, mode) }
