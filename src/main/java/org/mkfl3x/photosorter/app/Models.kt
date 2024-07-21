@@ -15,9 +15,9 @@ enum class SortMode(val text: String) {
     REPLACE("Replace")
 }
 
-enum class FolderType {
-    SOURCE,
-    DESTINATION
+enum class FolderType(val text: String) {
+    SOURCE("source"),
+    DESTINATION("destination")
 }
 
 class DirectoryException(message: String?) : Exception(message)

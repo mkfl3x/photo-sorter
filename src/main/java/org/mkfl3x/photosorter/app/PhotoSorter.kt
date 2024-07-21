@@ -40,7 +40,7 @@ class PhotoSorter {
                 if (this.isNotEmpty()) {
                     writeLog("Following duplicates detected and ${if (mode == SortMode.REPLACE) "deleted" else "excluded from sorting"}:")
                     allFiles.map { it.getFilePath() }.subtract(this.map { it.getFilePath() }).forEach {
-                        if (mode == SortMode.REPLACE)
+                        if (mode != SortMode.COPY)
                             Files.delete(Paths.get(it))
                         writeLog(it)
                     }
@@ -58,6 +58,8 @@ class PhotoSorter {
 
     private fun checkFolder(path: String, type: FolderType) {
         Paths.get(path).apply {
+            if (path.isEmpty() || path.isBlank())
+                throw DirectoryException("Please specify ${type.text} directory")
             when (type) {
                 FolderType.SOURCE -> {
                     if (Files.exists(this).not())
@@ -65,7 +67,6 @@ class PhotoSorter {
                     if (Files.isDirectory(this).not())
                         throw DirectoryException("Source folder should be a directory, not a file")
                 }
-
                 FolderType.DESTINATION -> {
                     if (path.isEmpty() || path.isBlank())
                         throw DirectoryException("Please specify destination directory")
