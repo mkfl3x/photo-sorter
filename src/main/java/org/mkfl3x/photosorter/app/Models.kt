@@ -1,17 +1,17 @@
 package org.mkfl3x.photosorter.app
 
-import java.nio.file.FileAlreadyExistsException
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
+import java.time.ZoneId
 import kotlin.io.path.pathString
 
 enum class SortMode(val text: String) {
     COPY("Copy"),
+    COPY_BY_YEARS("Copy by years"),
     MOVE("Move"),
+    MOVE_BY_YEARS("Move by years"),
     REPLACE("Replace")
 }
 
@@ -30,8 +30,11 @@ class File(private val filepath: Path, private val mode: SortMode) {
     private val size =
         Files.readAttributes(filepath, BasicFileAttributes::class.java).size()
 
+    private val pathDelimiter =
+        System.getProperty("os.name").let { if (it.startsWith("Windows")) "\\" else "/" }
+
     private val extension =
-        Files.probeContentType(filepath)?.substringAfterLast("/")!!.lowercase()
+        Files.probeContentType(filepath)?.substringAfterLast(pathDelimiter)!!.lowercase()
 
     private val lastModifiedTime =
         Files.readAttributes(filepath, BasicFileAttributes::class.java).lastModifiedTime()
@@ -45,16 +48,20 @@ class File(private val filepath: Path, private val mode: SortMode) {
     fun getFilePath() = filepath.pathString
 
     fun sort(source: String, destination: String, mode: SortMode, copyIndex: Int = 0): String {
+        val destinationFilepath = getDestinationFilepath(source, destination)
         try {
-            getDestinationFilepath(source, destination).apply {
-                val targetDestination = if (copyIndex > 0) addCopyIndex(this, copyIndex) else this
-                when (mode) {
-                    SortMode.COPY -> Files.copy(filepath, targetDestination)
-                    SortMode.MOVE,
-                    SortMode.REPLACE -> Files.move(filepath, targetDestination)
-                }
-                return "'$filepath' -> '$targetDestination'"
+            val targetDestination = if (copyIndex > 0) addCopyIndex(destinationFilepath, copyIndex) else destinationFilepath
+            when (mode) {
+                SortMode.COPY,
+                SortMode.COPY_BY_YEARS -> Files.copy(filepath, targetDestination)
+                SortMode.MOVE,
+                SortMode.MOVE_BY_YEARS,
+                SortMode.REPLACE -> Files.move(filepath, targetDestination)
             }
+            return "'$filepath' -> '$targetDestination'"
+        } catch (e: NoSuchFileException) {
+            Files.createDirectories(destinationFilepath.parent)
+            return sort(source, destination, mode, copyIndex)
         } catch (e: FileAlreadyExistsException) {
             return sort(source, destination, mode, copyIndex + 1)
         }
@@ -65,14 +72,21 @@ class File(private val filepath: Path, private val mode: SortMode) {
         return Paths.get(filepath.toString().replaceRange(extensionPointIndex, extensionPointIndex, " ($copyIndex)"))
     }
 
-    private fun getDestinationFilepath(sourceFolder: String, destinationFolder: String): Path = Paths.get(
-        filepath.toString().replace(filepath.fileName.toString(), formatFilename()).let {
-            if (mode != SortMode.REPLACE) it.replace(sourceFolder, destinationFolder) else it
-        }
-    )
+    private fun getDestinationFilepath(sourceFolder: String, destinationFolder: String): Path {
+        val path = if (mode == SortMode.COPY_BY_YEARS)
+            "$destinationFolder$pathDelimiter${getFileYear()}$pathDelimiter${formatFilename()}"
+        else
+            filepath.toString().replace(filepath.fileName.toString(), formatFilename()).let {
+                if (mode == SortMode.REPLACE) it else it.replace(sourceFolder, destinationFolder)
+            }
+        return Paths.get(path)
+    }
 
     private fun formatFilename() =
         SimpleDateFormat(filenamePattern).format(lastModifiedTime.toMillis()) + ".$extension"
+
+    private fun getFileYear() =
+        lastModifiedTime.toInstant().atZone(ZoneId.of("UTC")).year
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

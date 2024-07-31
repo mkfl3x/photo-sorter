@@ -8,7 +8,9 @@ The Photo-Sorter app can solve this problem by renaming your files to a more rea
 
 ### Modes
 - **Copy** - Copies renamed files to the destination directory
+- **Copy by years** - Copies renamed files to the folders by years
 - **Move** - Moves renamed files to the destination directory
+- **Move by years** - Moves renamed files to the folders by years
 - **Replace** - Renames files directly in the source directory
 
 **Move** and **Replace** modes remove files that are duplicated in the same directory.

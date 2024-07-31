@@ -21,12 +21,6 @@ class PhotoSorter {
         if (mode != SortMode.REPLACE)
             checkFolder(destination, FolderType.DESTINATION)
         Thread {
-            // create directories structure
-            if (mode != SortMode.REPLACE)
-                Files.walk(Paths.get(source))
-                    .filter { it.isDirectory() }
-                    .map { Paths.get(it.toString().replace(source, destination)) }
-                    .forEach { Files.createDirectory(it) }
             // collect all files
             writeLog("Collecting files... Supported formats: ${supportedFTypes.joinToString { it }}")
             val allFiles = Files.walk(Paths.get(source))
