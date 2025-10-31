@@ -2,6 +2,7 @@ package org.mkfl3x.photosorter.app
 
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.attribute.FileTime
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.time.ZoneId
@@ -36,11 +37,14 @@ class File(private val filepath: Path, private val mode: SortMode) {
     private val extension =
         Files.probeContentType(filepath)?.substringAfterLast(pathDelimiter)!!.lowercase()
 
+    private val creationTime =
+        Files.readAttributes(filepath, BasicFileAttributes::class.java).creationTime()
+
     private val lastModifiedTime =
         Files.readAttributes(filepath, BasicFileAttributes::class.java).lastModifiedTime()
 
     private val filenamePattern =
-        if (System.getProperty("os.name").startsWith("Mac")) "yyyy-MMM-dd_HH-mm-ss" else "yyyy-MMM-dd_HH:mm:ss"
+        if (System.getProperty("os.name").startsWith("Mac")) "yyyy-MM-dd_HH-mm-ss" else "yyyy-MM-dd_HH:mm:ss"
 
     private val md5Hash = MessageDigest.getInstance("MD5").digest(Files.readAllBytes(filepath))
         .joinToString("") { String.format("%02x", it) }
@@ -50,13 +54,13 @@ class File(private val filepath: Path, private val mode: SortMode) {
     fun sort(source: String, destination: String, mode: SortMode, copyIndex: Int = 0): String {
         val destinationFilepath = getDestinationFilepath(source, destination)
         try {
-            val targetDestination = if (copyIndex > 0) addCopyIndex(destinationFilepath, copyIndex) else destinationFilepath
+            val targetDestination =
+                if (copyIndex > 0) addCopyIndex(destinationFilepath, copyIndex) else destinationFilepath
             when (mode) {
-                SortMode.COPY,
-                SortMode.COPY_BY_YEARS -> Files.copy(filepath, targetDestination)
-                SortMode.MOVE,
-                SortMode.MOVE_BY_YEARS,
-                SortMode.REPLACE -> Files.move(filepath, targetDestination)
+                SortMode.COPY, SortMode.COPY_BY_YEARS ->
+                    Files.copy(filepath, targetDestination)
+                SortMode.MOVE, SortMode.MOVE_BY_YEARS, SortMode.REPLACE ->
+                    Files.move(filepath, targetDestination)
             }
             return "'$filepath' -> '$targetDestination'"
         } catch (e: NoSuchFileException) {
@@ -73,20 +77,21 @@ class File(private val filepath: Path, private val mode: SortMode) {
     }
 
     private fun getDestinationFilepath(sourceFolder: String, destinationFolder: String): Path {
+        val fileTime = listOf(creationTime, lastModifiedTime).minOf { it }
         val path = if (mode == SortMode.COPY_BY_YEARS)
-            "$destinationFolder$pathDelimiter${getFileYear()}$pathDelimiter${formatFilename()}"
+            "$destinationFolder$pathDelimiter${fileTime.getFileYear()}$pathDelimiter${fileTime.formatted()}"
         else
-            filepath.toString().replace(filepath.fileName.toString(), formatFilename()).let {
+            filepath.toString().replace(filepath.fileName.toString(), fileTime.formatted()).let {
                 if (mode == SortMode.REPLACE) it else it.replace(sourceFolder, destinationFolder)
             }
         return Paths.get(path)
     }
 
-    private fun formatFilename() =
-        SimpleDateFormat(filenamePattern).format(lastModifiedTime.toMillis()) + ".$extension"
+    private fun FileTime.formatted() =
+        SimpleDateFormat(filenamePattern).format(this.toMillis()) + ".$extension"
 
-    private fun getFileYear() =
-        lastModifiedTime.toInstant().atZone(ZoneId.of("UTC")).year
+    private fun FileTime.getFileYear() =
+        this.toInstant().atZone(ZoneId.of("UTC")).year
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

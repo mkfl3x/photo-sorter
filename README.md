@@ -1,10 +1,6 @@
 ## Photo-Sorter
-Sometimes you have a lot of photos from various devices, and their names might look like **_MG_5529.JPG** or **DSC00758.JPG**.
-
-The Photo-Sorter app can solve this problem by renaming your files to a more readable format:  
-**2007-Sep-10_13-55-40.jpeg**.
-
-<img width="882" alt="Photo-Sorter" src="https://github.com/user-attachments/assets/17fb1072-c7a9-4788-9218-34cf2ac6e76b">
+Sometimes you have a lot of photos from various devices, and their names might look like **_MG_5529.JPG** or **DSC00758.JPG**.  
+The Photo-Sorter renames your files to a more readable format: **2007-09-15_13-55-40.jpeg**.
 
 ### Modes
 - **Copy** - Copies renamed files to the destination directory
@@ -17,10 +13,12 @@ The Photo-Sorter app can solve this problem by renaming your files to a more rea
 
 ### Supported file formats
 - JPG/JPEG
-- PNG
+- PNG  
+
+**Unsupported format files are ignored**
 
 ### How it defines the date
-It uses the last modified time from the file metadata.
+It uses the created time or last modified time (takes the older one) from the file metadata.
 
 ### How it defines duplicates
 It compares files by their names, extensions, sizes, and MD5 hashes.  
